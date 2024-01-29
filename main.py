@@ -3,12 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def plotY(Y):
+    plt.figure("Y")
     plt.imshow(Y, cmap='viridis', aspect='auto')
     plt.ylabel('Movies')
     plt.xlabel('Users')
     plt.title('Movie Ratings Matrix')
     plt.colorbar(label='Rating')
-    plt.show()
+    plt.show(block=False)
 
 
 def normalizeRatings(Y, R):
@@ -22,7 +23,7 @@ def normalizeRatings(Y, R):
     return {"Ynorm": Ynorm, "Ymean": Ymean}
 
 
-def costFunction(X, Theta, Y, R, usersNumber, filmsNumber, featuresNumber, lambda_):
+def costFunction(X, Theta, Y, R, usersNumber, moviesNumber, featuresNumber, lambda_):
     errors = pd.DataFrame((( np.dot(X.to_numpy(), Theta.T.to_numpy()) - Y.to_numpy()) * R.to_numpy()))
     squared_errors = errors ** 2
     J = ((1 / 2) * np.sum(squared_errors.to_numpy()) +
@@ -32,10 +33,10 @@ def costFunction(X, Theta, Y, R, usersNumber, filmsNumber, featuresNumber, lambd
     Theta_grad = np.dot(errors.T, X) + (lambda_ * Theta)
     return [J, X_grad, Theta_grad]
 
-def gradientDescent(X, Theta, Y, R, usersNumber, filmsNumber, featuresNumber, lambda_, alpha, iterations ):
+def gradientDescent(X, Theta, Y, R, usersNumber, moviesNumber, featuresNumber, lambda_, alpha, iterations ):
     J_history = np.ones(iterations)
     for iter in range(iterations):
-        [J, X_grad, Theta_grad] = costFunction(X, Theta, Y, R, usersNumber, filmsNumber, featuresNumber, lambda_)
+        [J, X_grad, Theta_grad] = costFunction(X, Theta, Y, R, usersNumber, moviesNumber, featuresNumber, lambda_)
         print(f"Iteration {iter}, cost: {J}")
         X -= alpha * X_grad
         Theta -= alpha * Theta_grad
@@ -44,25 +45,25 @@ def gradientDescent(X, Theta, Y, R, usersNumber, filmsNumber, featuresNumber, la
 
 def main():
     Y = pd.read_csv('Y.csv', sep=';', header=None)
-    filmsNumber, usersNumber = Y.shape
+    moviesNumber, usersNumber = Y.shape
     R = pd.read_csv('R.csv', sep=';', header=None)
     movieList = pd.read_csv("movie_ids.csv", sep=";")
-    print(f"Loaded {filmsNumber} films and {usersNumber} users")
+    print(f"Loaded {moviesNumber} movies and {usersNumber} users")
 
-    filmId = 0
-    filmName = movieList.iloc[filmId]["name"]
-    filmRatings = Y.loc[filmId, R.iloc[filmId] == 1]
-    filmMean = np.mean(filmRatings)
-    print(f"Average rating for movie '{filmName}': {filmMean} / 5")
+    movieId = 0
+    movieName = movieList.iloc[movieId]["name"]
+    movieRatings = Y.loc[movieId, R.iloc[movieId] == 1]
+    movieMean = np.mean(movieRatings)
+    print(f"Average rating for movie '{movieName}': {movieMean} / 5")
 
     plt.imshow(Y, cmap='viridis', aspect='auto')
     plt.ylabel('Movies')
     plt.xlabel('Users')
     plt.title('Movie Ratings Matrix')
     plt.colorbar(label='Rating')
-    plt.show()
+    plt.show(block=False)
 
-    newRatings = np.zeros(filmsNumber)
+    newRatings = np.zeros(moviesNumber)
     newRatings[0] = 4
     newRatings[97] = 2
     newRatings[49] = 5
@@ -79,13 +80,13 @@ def main():
     newRatings[187] = 5
     newRatings[209] = 5
     print("New user ratings:")
-    for index in range(filmsNumber):
+    for index in range(moviesNumber):
         if newRatings[index] > 0:
             movieName = movieList.iloc[index]["name"]
-            print(f"Rate {newRatings[index]} for film {movieName}")
+            print(f"Rate {newRatings[index]} for movie {movieName}")
     newRatingsSeries = pd.Series(newRatings)
     Y = pd.concat([newRatingsSeries, Y], axis=1)
-    [filmsNumber, usersNumber] = Y.shape
+    [moviesNumber, usersNumber] = Y.shape
     print(f"Now dataset contains {usersNumber} users")
     newRatingsBool = (newRatings != 0).astype(int)
     R = pd.concat([pd.Series(newRatingsBool), R], axis=1)
@@ -95,17 +96,22 @@ def main():
     Ymean = normalizeResults["Ymean"]
 
     featuresNumber = 20
-    X = pd.DataFrame(np.random.randn(filmsNumber, featuresNumber))
-    Theta = pd.DataFrame(np.random.randn(usersNumber, featuresNumber))
+    epsilon_init = 1
+    X = pd.DataFrame(np.random.randn(moviesNumber, featuresNumber) * epsilon_init)
+    Theta = pd.DataFrame(np.random.randn(usersNumber, featuresNumber) * epsilon_init)
     lambda_ = 2
-    alpha = 0.005
+    alpha = 0.002
     iterations = 200
-    trainingResults = gradientDescent(X, Theta, Ynorm, R, usersNumber, filmsNumber, featuresNumber, lambda_, alpha, iterations)
+    trainingResults = gradientDescent(X, Theta, Ynorm, R, usersNumber, moviesNumber, featuresNumber, lambda_, alpha, iterations)
     J_history = trainingResults["J_history"]
     X = trainingResults["X"]
     Theta = trainingResults["Theta"]
-    #plt.plot(J_history)
-    #plt.show()
+    plt.figure("j")
+    plt.plot(J_history)
+    plt.title('Cost Function History')
+    plt.ylabel('Cost Function')
+    plt.xlabel('Iterations')
+    plt.show()
     print("Learning completed")
 
     print("Starting predictions")
@@ -113,23 +119,23 @@ def main():
     newUserPrediction = pd.Series(predictions[:, 0] + Ymean)
     newUserPrediction = newUserPrediction.sort_values(ascending=False)
     for i in range(20):
-        filmRate = newUserPrediction.iloc[i]
-        filmId = newUserPrediction.index[i]
-        filmName = movieList.iloc[filmId]["name"]
-        print(f"Predicting rating {filmRate} for movie {filmName}")
+        movieRate = newUserPrediction.iloc[i]
+        movieId = newUserPrediction.index[i]
+        movieName = movieList.iloc[movieId]["name"]
+        print(f"Predicting rating {movieRate} for movie {movieName}")
 
     print("Finding similarities")
     movieId = 50
-    print(f"Film: {movieList.iloc[movieId - 1]['name']}")
-    similaritySeries = pd.Series(np.zeros(filmsNumber))
-    for i in range(filmsNumber):
+    print(f"movie: {movieList.iloc[movieId - 1]['name']}")
+    similaritySeries = pd.Series(np.zeros(moviesNumber))
+    for i in range(moviesNumber):
         similaritySeries.iloc[i] = np.linalg.norm(X.iloc[i, :] - X.iloc[movieId, :])
     similaritySeries.sort_values(ascending=True)
     max = 11
-    preferedFilmsRate = similaritySeries.sort_values(ascending=True).iloc[1:max]
-    for index in preferedFilmsRate.index:
+    preferedMoviesRate = similaritySeries.sort_values(ascending=True).iloc[1:max]
+    for index in preferedMoviesRate.index:
         movieName = movieList.iloc[index]["name"]
-        movieSimilarity = preferedFilmsRate.loc[index]
+        movieSimilarity = preferedMoviesRate.loc[index]
         print(f"Movie {movieName} --- with similarity {movieSimilarity}")
 
 if __name__ == "__main__":
