@@ -52,15 +52,13 @@ class MovieRecommender:
     def _costFunction(self, X, Theta, Y, R, usersNumber: int, moviesNumber: int, featuresNumber:int, lambda_):
         errors = ((X @ Theta.T - Y) * R)
         squared_errors = errors ** 2
-        J = ((1 / 2) * np.sum(squared_errors) +
-             (lambda_ / 2) * np.sum(Theta.flatten() ** 2) +
-             (lambda_ / 2) * np.sum(X.flatten() ** 2))
+        J = (1 / 2) * np.sum(squared_errors) + (lambda_ / 2) * (np.sum(Theta.flatten() ** 2) + np.sum(X.flatten() ** 2))
         X_grad = errors @ Theta + (lambda_ * X)
         Theta_grad = errors.T @ X + (lambda_ * Theta)
         return [J, X_grad, Theta_grad]
 
     def _gradientDescent(self, Y: pd.DataFrame, usersNumber:int , moviesNumber:int , featuresNumber:int, lambda_, alpha, iterations:int):
-        J_history = np.ones(iterations)
+        J_history = np.zeros(iterations)
         X = self.X.to_numpy()
         Theta = self.Theta.to_numpy()
         R = self.R.to_numpy().copy()

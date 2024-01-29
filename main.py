@@ -59,7 +59,7 @@ def main():
     FEATURES_NUMBER = 20
     LAMBDA = 2
     ALPHA = 0.002
-    ITERATIONS = 200
+    ITERATIONS = 2000
     print("-----")
     print("Start learning...")
     J_history = recommender.train(FEATURES_NUMBER, LAMBDA, ALPHA, ITERATIONS)
