@@ -50,28 +50,28 @@ class MovieRecommender:
         self.Theta = pd.DataFrame(np.random.randn(self.usersNumber, featuresNumber))
 
     def _costFunction(self, X, Theta, Y, R, usersNumber: int, moviesNumber: int, featuresNumber:int, lambda_):
-        errors = pd.DataFrame(((np.dot(X.to_numpy(), Theta.T.to_numpy()) - Y.to_numpy()) * R.to_numpy()))
+        errors = ((X @ Theta.T - Y) * R)
         squared_errors = errors ** 2
-        J = ((1 / 2) * np.sum(squared_errors.to_numpy()) +
-             (lambda_ / 2) * np.sum(Theta.to_numpy().flatten() ** 2) +
-             (lambda_ / 2) * np.sum(X.to_numpy().flatten() ** 2))
-        X_grad = np.dot(errors, Theta) + (lambda_ * X)
-        Theta_grad = np.dot(errors.T, X) + (lambda_ * Theta)
+        J = ((1 / 2) * np.sum(squared_errors) +
+             (lambda_ / 2) * np.sum(Theta.flatten() ** 2) +
+             (lambda_ / 2) * np.sum(X.flatten() ** 2))
+        X_grad = errors @ Theta + (lambda_ * X)
+        Theta_grad = errors.T @ X + (lambda_ * Theta)
         return [J, X_grad, Theta_grad]
 
     def _gradientDescent(self, Y: pd.DataFrame, usersNumber:int , moviesNumber:int , featuresNumber:int, lambda_, alpha, iterations:int):
         J_history = np.ones(iterations)
-        X = self.X
-        Theta = self.Theta
-        R = self.R.copy()
+        X = self.X.to_numpy()
+        Theta = self.Theta.to_numpy()
+        R = self.R.to_numpy().copy()
         for iter in range(iterations):
-            [J, X_grad, Theta_grad] = self._costFunction(X, Theta, Y, R, usersNumber, moviesNumber, featuresNumber, lambda_)
+            [J, X_grad, Theta_grad] = self._costFunction(X, Theta, Y.to_numpy(), R, usersNumber, moviesNumber, featuresNumber, lambda_)
             print(f"Iteration {iter}, cost: {J}")
             X -= alpha * X_grad
             Theta -= alpha * Theta_grad
             J_history[iter] = J
-        self.X = X
-        self.Theta = Theta
+        self.X = pd.DataFrame(X)
+        self.Theta = pd.DataFrame(Theta)
         return J_history
 
 
