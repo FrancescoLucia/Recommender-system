@@ -82,7 +82,8 @@ class MovieRecommender:
         plt.xlabel('Users')
         plt.title('Movie Ratings Matrix')
         plt.colorbar(label='Rating')
-        plt.show()
+        plt.draw()
+        plt.show(block=False)
 
     def train(self, featuresNumber, lambda_, alpha, iterations) -> np.array:
         normalizeResults = self.normalizeRatings(self.Y, self.R)
@@ -125,4 +126,5 @@ def plotJ(J_history) -> None:
         plt.title('Cost Function History')
         plt.ylabel('Cost Function')
         plt.xlabel('Iterations')
-        plt.show()
+        plt.draw()
+        plt.show(block=False)

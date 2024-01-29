@@ -52,21 +52,28 @@ def main():
     for movie in newRatingsList:
         print(movie)
     print(f"Now dataset contains {recommender.usersNumber} users")
-    
+    print("-----")
+    input("Press enter...")
+
     # Training
     featuresNumber = 20
     lambda_ = 2
     alpha = 0.002
-    iterations = 200
+    iterations = 2000
+    print("-----")
     print("Start learning...")
     J_history = recommender.train(featuresNumber, lambda_, alpha, iterations)
     print("Learning completed")
     plotJ(J_history)
+    print("-----")
+    input("Press enter...")
 
     predictedMovies = recommender.predict(userId=0, moviesNumber=20)
     for predictedMovie in predictedMovies:
         print(predictedMovie)
-
+    print("-----")
+    input("Press enter...")
+    print("-----")
     print("Finding similarities")
     movieId = 50
     similarMovies = recommender.findSimilarMovies(movieId=movieId, moviesNumber=10)
@@ -74,6 +81,7 @@ def main():
         print(movie)
     
     print("-----")
+    input("Press enter to quit...")
 
 if __name__ == "__main__":
     main()
